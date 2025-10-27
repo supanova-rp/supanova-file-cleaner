@@ -9,7 +9,8 @@ import (
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	s3 "github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/supanova-rp/supanova-file-cleaner/config"
+	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
+	"github.com/supanova-rp/supanova-file-cleaner/internal/store"
 )
 
 func main() {
@@ -27,10 +28,29 @@ func main() {
 func run(ctx context.Context) error {
 	cfg, err := config.ParseEnv()
 	if err != nil {
-		return fmt.Errorf("unable to parse env %v", err)
+		return fmt.Errorf("unable to parse env: %v", err)
 	}
 
-	return listBucket(ctx, cfg)
+	db, err := store.NewStore(ctx, cfg.DatabaseURL)
+	if err != nil {
+		return fmt.Errorf("unable to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	err = listBucket(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("failed to list bucket: %v", err)
+	}
+
+	videos, err := db.Queries.GetVideos(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get videos: %v", err)
+	}
+
+	fmt.Printf("\n%+v\n", videos)
+
+	// TODO: Best way to make the app block?
+	select {}
 }
 
 func listBucket(ctx context.Context, cfg config.Config) error {

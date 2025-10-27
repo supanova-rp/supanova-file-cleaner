@@ -9,7 +9,8 @@ import (
 )
 
 type Config struct {
-	AWS AWSConfig
+	DatabaseURL string
+	AWS         AWSConfig
 }
 
 type AWSConfig struct {
@@ -23,6 +24,11 @@ func ParseEnv() (Config, error) {
 	err := godotenv.Load()
 	if err != nil {
 		return Config{}, fmt.Errorf("error loading .env file: %v", err)
+	}
+
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		return Config{}, errors.New("DATABASE_URL environment variable is not set")
 	}
 
 	region := os.Getenv("AWS_REGION")
@@ -46,6 +52,7 @@ func ParseEnv() (Config, error) {
 	}
 
 	return Config{
+		DatabaseURL: databaseURL,
 		AWS: AWSConfig{
 			Region:          region,
 			BucketName:      bucketName,
