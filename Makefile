@@ -1,14 +1,29 @@
+GIT_HASH := $(shell git rev-parse --short HEAD)
+
+dep:
+	go mod download
+
 run:
 	go run main.go
 
-lint: lint-install lint-run
+lint: lint/install lint/run
 
-lint-install:
+lint/install:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v2.5.0
 
-lint-run:
+lint/run:
 	bin/golangci-lint run --config .golangci.yml
 
-# build:
+build:
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64 \
+	go build -o supanova-file-cleaner .
 
-# run-docker:
+docker/local-build:
+	DOCKER_BUILDKIT=1 docker build -t supanova-file-cleaner:local .
+
+docker/ci-build:
+	DOCKER_BUILDKIT=1 docker build \
+	-t supanova-file-cleaner:latest \
+	-t supanova-file-cleaner:$(GIT_HASH) .
