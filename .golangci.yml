@@ -41,6 +41,10 @@ linters:
       locale: UK
     nolintlint:
       allow-unused: false # report any unused nolint directives
+    revive:
+      rules:
+        - name: package-comments
+          disabled: true
 
 formatters:
   enable:
