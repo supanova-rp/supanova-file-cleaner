@@ -37,7 +37,7 @@ func run(ctx context.Context) error {
 	}
 	defer db.Close()
 
-	err = listBucket(ctx, cfg)
+	err = listBucket(ctx, cfg.AWS)
 	if err != nil {
 		return fmt.Errorf("failed to list bucket: %v", err)
 	}
@@ -53,13 +53,13 @@ func run(ctx context.Context) error {
 	select {}
 }
 
-func listBucket(ctx context.Context, cfg config.Config) error {
+func listBucket(ctx context.Context, cfg config.AWSConfig) error {
 	awsConfig, err := aws_config.LoadDefaultConfig(
 		ctx,
-		aws_config.WithRegion(cfg.AWS.Region),
+		aws_config.WithRegion(cfg.Region),
 		aws_config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			cfg.AWS.AccessKeyID,
-			cfg.AWS.SecretAccessKey,
+			cfg.AccessKeyID,
+			cfg.SecretAccessKey,
 			"",
 		)),
 	)
@@ -71,7 +71,7 @@ func listBucket(ctx context.Context, cfg config.Config) error {
 
 	// TODO: paginate?
 	resp, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-		Bucket: aws.String(cfg.AWS.BucketName),
+		Bucket: aws.String(cfg.BucketName),
 	})
 	if err != nil {
 		return fmt.Errorf("unable to list items in bucket %v", err)
