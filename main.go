@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	aws "github.com/aws/aws-sdk-go-v2/aws"
-	aws_config "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	s3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
+	"github.com/supanova-rp/supanova-file-cleaner/internal/s3"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/store"
 )
 
@@ -37,7 +34,12 @@ func run(ctx context.Context) error {
 	}
 	defer db.Close()
 
-	err = listBucket(ctx, cfg.AWS)
+	s3Client, err := s3.New(ctx, cfg.AWS)
+	if err != nil {
+		return fmt.Errorf("unable to connect to s3: %v", err)
+	}
+
+	err = s3Client.ListBucket(ctx, cfg.AWS)
 	if err != nil {
 		return fmt.Errorf("failed to list bucket: %v", err)
 	}
@@ -51,35 +53,4 @@ func run(ctx context.Context) error {
 
 	// TODO: Best way to make the app block?
 	select {}
-}
-
-func listBucket(ctx context.Context, cfg config.AWSConfig) error {
-	awsConfig, err := aws_config.LoadDefaultConfig(
-		ctx,
-		aws_config.WithRegion(cfg.Region),
-		aws_config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			cfg.AccessKeyID,
-			cfg.SecretAccessKey,
-			"",
-		)),
-	)
-	if err != nil {
-		return fmt.Errorf("unable to load SDK config %v", err)
-	}
-
-	client := s3.NewFromConfig(awsConfig)
-
-	// TODO: paginate?
-	resp, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-		Bucket: aws.String(cfg.BucketName),
-	})
-	if err != nil {
-		return fmt.Errorf("unable to list items in bucket %v", err)
-	}
-
-	for _, item := range resp.Contents {
-		fmt.Printf("Name: %s, Size: %d bytes\n", *item.Key, item.Size)
-	}
-
-	return nil
 }
