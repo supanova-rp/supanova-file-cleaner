@@ -11,3 +11,9 @@ Run:
 ```
 make run
 ```
+
+Generate db queries:
+```
+make sqlc
+```
+
