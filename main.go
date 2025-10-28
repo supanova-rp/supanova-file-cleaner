@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 
+	"github.com/robfig/cron/v3"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
+	"github.com/supanova-rp/supanova-file-cleaner/internal/filecleaner"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/s3"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/store"
 )
@@ -39,17 +42,19 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("unable to connect to s3: %v", err)
 	}
 
-	err = s3Client.ListBucket(ctx, cfg.AWS)
-	if err != nil {
-		return fmt.Errorf("failed to list bucket: %v", err)
-	}
+	cleaner := filecleaner.New(db, s3Client)
 
-	videos, err := db.Queries.GetVideos(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get videos: %v", err)
-	}
+	c := cron.New()
 
-	fmt.Printf("\n%+v\n", videos)
+	c.AddFunc(cfg.CronSchedule, func() {
+		err = cleaner.Run(ctx)
+		if err != nil {
+			slog.Error("file cleaner run failed", slog.Any("err", err))
+		}
+	})
+
+	// Start the scheduler (non-blocking)
+	c.Start()
 
 	// TODO: Best way to make the app block?
 	select {}

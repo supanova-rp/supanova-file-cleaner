@@ -12,7 +12,13 @@ import (
 )
 
 type Client struct {
-	s3 *s3.Client
+	s3         *s3.Client
+	bucketName string
+}
+
+type Item struct {
+	Key  string
+	Size int64
 }
 
 func New(ctx context.Context, cfg config.AWSConfig) (*Client, error) {
@@ -32,22 +38,28 @@ func New(ctx context.Context, cfg config.AWSConfig) (*Client, error) {
 	client := s3.NewFromConfig(awsConfig)
 
 	return &Client{
-		s3: client,
+		s3:         client,
+		bucketName: cfg.BucketName,
 	}, nil
 }
 
-func (c *Client) ListBucket(ctx context.Context, cfg config.AWSConfig) error {
+func (c *Client) GetBucketItems(ctx context.Context) ([]Item, error) {
 	// TODO: paginate?
 	resp, err := c.s3.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-		Bucket: aws.String(cfg.BucketName),
+		Bucket: aws.String(c.bucketName),
 	})
 	if err != nil {
-		return fmt.Errorf("unable to list items in bucket %v", err)
+		return nil, fmt.Errorf("unable to list items in bucket %v", err)
 	}
+
+	items := make([]Item, 0, len(resp.Contents))
 
 	for _, item := range resp.Contents {
-		fmt.Printf("Name: %s, Size: %d bytes\n", *item.Key, item.Size)
+		items = append(items, Item{
+			Key:  aws.ToString(item.Key),
+			Size: aws.ToInt64(item.Size),
+		})
 	}
 
-	return nil
+	return items, nil
 }
