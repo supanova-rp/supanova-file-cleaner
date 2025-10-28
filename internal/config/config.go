@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct {
-	DatabaseURL string
-	AWS         AWSConfig
+	DatabaseURL  string
+	CronSchedule string
+	AWS          AWSConfig
 }
 
 type AWSConfig struct {
@@ -29,6 +30,11 @@ func ParseEnv() (*Config, error) {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		return nil, errors.New("DATABASE_URL environment variable is not set")
+	}
+
+	cronSchedule := os.Getenv("CRON_SCHEDULE")
+	if cronSchedule == "" {
+		return nil, errors.New("CRON_SCHEDULE environment variable is not set")
 	}
 
 	region := os.Getenv("AWS_REGION")
@@ -52,7 +58,8 @@ func ParseEnv() (*Config, error) {
 	}
 
 	return &Config{
-		DatabaseURL: databaseURL,
+		DatabaseURL:  databaseURL,
+		CronSchedule: cronSchedule,
 		AWS: AWSConfig{
 			Region:          region,
 			BucketName:      bucketName,
