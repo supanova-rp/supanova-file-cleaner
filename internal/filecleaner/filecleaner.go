@@ -10,6 +10,10 @@ import (
 	"github.com/supanova-rp/supanova-file-cleaner/internal/store/sqlc"
 )
 
+const (
+	bytesInMB = 1000000
+)
+
 type FileCleaner struct {
 	store *store.Store
 	s3    *s3.Client
@@ -50,20 +54,6 @@ func (f *FileCleaner) Run(ctx context.Context) error {
 		}
 	}
 
-	// for _, item := range items {
-	// 	fmt.Printf("Name: %s, Size: %d bytes\n", item.Key, item.Size)
-	// }
-
-	// fmt.Println(">>> len(items): ", len(items))
-
-	// for _, video := range videos {
-	// 	fmt.Printf("Video in DB >> Name: %s, CourseID: %s, StorageKey: %s\n", video.Title.String, video.CourseID.String(), video.StorageKey.String())
-	// }
-
-	// for _, m := range courseMaterials {
-	// 	fmt.Printf("Course Material in DB >> Name: %s, CourseID: %s, StorageKey: %s\n", m.Name, m.CourseID.String(), m.StorageKey.String())
-	// }
-
 	var totalSize int64
 
 	for _, item := range unusedItems {
@@ -73,7 +63,7 @@ func (f *FileCleaner) Run(ctx context.Context) error {
 
 	// TODO: change to slog
 	fmt.Printf("Number of deleted items: %d\n", len(unusedItems))
-	fmt.Printf("Total size of deleted items: %dMB\n", totalSize/1000000)
+	fmt.Printf("Total size of deleted items: %dMB\n", totalSize/bytesInMB)
 
 	// TODO: delete the items
 

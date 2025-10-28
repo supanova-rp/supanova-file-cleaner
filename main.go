@@ -46,12 +46,15 @@ func run(ctx context.Context) error {
 
 	c := cron.New()
 
-	c.AddFunc(cfg.CronSchedule, func() {
+	_, err = c.AddFunc(cfg.CronSchedule, func() {
 		err = cleaner.Run(ctx)
 		if err != nil {
 			slog.Error("file cleaner run failed", slog.Any("err", err))
 		}
 	})
+	if err != nil {
+		return fmt.Errorf("failed to add cron func: %v", err)
+	}
 
 	// Start the scheduler (non-blocking)
 	c.Start()
