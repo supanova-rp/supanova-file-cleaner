@@ -28,7 +28,7 @@ func New(db *store.Store, s3Client *s3.Client) *FileCleaner {
 }
 
 func (f *FileCleaner) Run(ctx context.Context) error {
-	slog.Info("Running file cleaner")
+	slog.Info("running file cleaner")
 
 	items, err := f.s3.GetBucketItems(ctx)
 	if err != nil {
