@@ -63,3 +63,15 @@ func (c *Client) GetBucketItems(ctx context.Context) ([]Item, error) {
 
 	return items, nil
 }
+
+func (c *Client) DeleteItem(ctx context.Context, key string) error {
+	_, err := c.s3.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(c.bucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete item with key: %s, error: %v", key, err)
+	}
+
+	return nil
+}
