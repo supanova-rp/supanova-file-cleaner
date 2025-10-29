@@ -10,7 +10,7 @@ RUN make dep
 
 COPY . .
 
-RUN make build
+RUN make build/linux
 
 # =========================
 # STAGE 2: runtime
@@ -27,5 +27,3 @@ COPY --from=builder /app/supanova-file-cleaner /app/supanova-file-cleaner
 USER appuser
 
 ENTRYPOINT ["/app/supanova-file-cleaner"]
-
-# EXPOSE 3000

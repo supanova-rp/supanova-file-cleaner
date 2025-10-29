@@ -1,4 +1,6 @@
 GIT_HASH := $(shell git rev-parse --short HEAD)
+DOCKER_USER := jdgarner
+IMAGE_NAME := supanova-file-cleaner
 
 dep:
 	go mod download
@@ -17,16 +19,28 @@ lint/run:
 sqlc:
 	go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0 generate -f internal/store/sqlc.yaml
 
-build:
+build/mac:
+	CGO_ENABLED=0 \
+	GOOS=darwin \
+	GOARCH=arm64 \
+	go build -o $(IMAGE_NAME) .
+
+build/linux:
 	CGO_ENABLED=0 \
 	GOOS=linux \
 	GOARCH=amd64 \
-	go build -o supanova-file-cleaner .
+	go build -o $(IMAGE_NAME) .
 
 docker/local-build:
-	DOCKER_BUILDKIT=1 docker build -t supanova-file-cleaner:local .
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_USER)/$(IMAGE_NAME):local .
 
 docker/ci-build:
 	DOCKER_BUILDKIT=1 docker build \
-	-t supanova-file-cleaner:latest \
-	-t supanova-file-cleaner:$(GIT_HASH) .
+	-t $(DOCKER_USER)/$(IMAGE_NAME):latest \
+	-t $(DOCKER_USER)/$(IMAGE_NAME):$(GIT_HASH) .
+
+docker/local-run:
+	docker run --env-file .env.docker $(DOCKER_USER)/$(IMAGE_NAME):local
+
+docker/push:
+	docker push --all-tags $(DOCKER_USER)/$(IMAGE_NAME)

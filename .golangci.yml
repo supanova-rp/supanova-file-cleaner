@@ -50,4 +50,8 @@ formatters:
   enable:
     - gofmt
     - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/supanova-rp/supanova-file-cleaner
 

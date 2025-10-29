@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/robfig/cron/v3"
+
 	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/filecleaner"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/s3"

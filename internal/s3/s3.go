@@ -8,6 +8,7 @@ import (
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	s3 "github.com/aws/aws-sdk-go-v2/service/s3"
+
 	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
 )
 

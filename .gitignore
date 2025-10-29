@@ -1,3 +1,4 @@
 .env
+.env.docker
 bin/
 supanova-file-cleaner
