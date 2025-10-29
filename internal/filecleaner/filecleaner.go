@@ -16,19 +16,24 @@ const (
 )
 
 type FileCleaner struct {
-	store *store.Store
-	s3    *s3.Client
+	store  *store.Store
+	s3     *s3.Client
+	dryRun bool
 }
 
-func New(db *store.Store, s3Client *s3.Client) *FileCleaner {
+func New(db *store.Store, s3Client *s3.Client, dryRun bool) *FileCleaner {
 	return &FileCleaner{
-		store: db,
-		s3:    s3Client,
+		store:  db,
+		s3:     s3Client,
+		dryRun: dryRun,
 	}
 }
 
 func (f *FileCleaner) Run(ctx context.Context) error {
 	slog.Info("running file cleaner")
+	if f.dryRun {
+		slog.Info("dry run enabled")
+	}
 
 	items, err := f.s3.GetBucketItems(ctx)
 	if err != nil {
@@ -63,9 +68,11 @@ func (f *FileCleaner) Run(ctx context.Context) error {
 		totalUnusedSize += item.Size
 		slog.Info("Unused item", slog.String("name", item.Key), slog.Int64("size_bytes", item.Size))
 
-		err := f.s3.DeleteItem(ctx, item.Key)
-		if err != nil {
-			return err
+		if !f.dryRun { // don't delete the unused items on a dry run
+			err := f.s3.DeleteItem(ctx, item.Key)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

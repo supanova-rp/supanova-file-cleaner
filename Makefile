@@ -16,6 +16,9 @@ lint/install:
 lint/run:
 	bin/golangci-lint run --config .golangci.yml
 
+lint/fix:
+	bin/golangci-lint run --config .golangci.yml --fix
+
 sqlc:
 	go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0 generate -f internal/store/sqlc.yaml
 

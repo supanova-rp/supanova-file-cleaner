@@ -2,7 +2,9 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -10,6 +12,7 @@ import (
 type Config struct {
 	DatabaseURL  string
 	CronSchedule string
+	DryRun       bool // if DryRun is true, unused s3 items aren't actually deleted
 	AWS          AWSConfig
 }
 
@@ -55,9 +58,19 @@ func ParseEnv() (*Config, error) {
 		return nil, errors.New("AWS_SECRET_ACCESS_KEY environment variable is not set")
 	}
 
+	dryRunString := os.Getenv("DRY_RUN")
+	if dryRunString == "" {
+		return nil, errors.New("DRY_RUN environment variable is not set")
+	}
+	dryRun, err := strconv.ParseBool(dryRunString)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse DRY_RUN environment variable: %v", err)
+	}
+
 	return &Config{
 		DatabaseURL:  databaseURL,
 		CronSchedule: cronSchedule,
+		DryRun:       dryRun,
 		AWS: AWSConfig{
 			Region:          region,
 			BucketName:      bucketName,

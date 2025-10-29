@@ -46,7 +46,7 @@ func run() error {
 		return fmt.Errorf("unable to connect to s3: %v", err)
 	}
 
-	cleaner := filecleaner.New(db, s3Client)
+	cleaner := filecleaner.New(db, s3Client, cfg.DryRun)
 
 	c := cron.New()
 

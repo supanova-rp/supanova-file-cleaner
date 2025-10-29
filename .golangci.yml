@@ -49,9 +49,11 @@ linters:
 formatters:
   enable:
     - gofmt
-    - goimports
+    - gci
   settings:
-    goimports:
-      local-prefixes:
-        - github.com/supanova-rp/supanova-file-cleaner
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/supanova-rp/supanova-file-cleaner)
 
