@@ -3,6 +3,7 @@ package filecleaner
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/supanova-rp/supanova-file-cleaner/internal/s3"
@@ -27,6 +28,8 @@ func New(db *store.Store, s3Client *s3.Client) *FileCleaner {
 }
 
 func (f *FileCleaner) Run(ctx context.Context) error {
+	slog.Info("Running file cleaner")
+
 	items, err := f.s3.GetBucketItems(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list bucket: %v", err)
@@ -43,31 +46,49 @@ func (f *FileCleaner) Run(ctx context.Context) error {
 	}
 
 	var unusedItems []s3.Item
+	var totalUnusedSize, totalUsedSize int64
 
 	for _, item := range items {
-		if isVideoItem(item.Key) && !isInVideoTable(item.Key, videos) {
-			unusedItems = append(unusedItems, item)
-		}
+		totalUsedSize += item.Size
 
-		if isCourseMaterialItem(item.Key) && !isInCourseMaterialsTable(item.Key, courseMaterials) {
+		if isUnused(item, videos, courseMaterials) {
 			unusedItems = append(unusedItems, item)
 		}
 	}
 
-	var totalSize int64
+	slog.Info("Number of items in s3", slog.Int("count", len(items)))
+	slog.Info("Total size of items in s3", slog.Int64("size_mb", totalUsedSize/bytesInMB))
 
 	for _, item := range unusedItems {
-		totalSize += item.Size
-		fmt.Printf("Unused Item >> Name: %s, Size: %d bytes\n", item.Key, item.Size)
+		totalUnusedSize += item.Size
+		slog.Info("Unused item", slog.String("name", item.Key), slog.Int64("size_bytes", item.Size))
+
+		err := f.s3.DeleteItem(ctx, item.Key)
+		if err != nil {
+			return err
+		}
 	}
 
-	// TODO: change to slog
-	fmt.Printf("Number of deleted items: %d\n", len(unusedItems))
-	fmt.Printf("Total size of deleted items: %dMB\n", totalSize/bytesInMB)
-
-	// TODO: delete the items
+	if len(unusedItems) > 0 {
+		slog.Info("Found unused items", slog.Int("count", len(unusedItems)))
+		slog.Info("Total size of deleted items", slog.Int64("size_mb", totalUnusedSize/bytesInMB))
+	} else {
+		slog.Info("No unused items found")
+	}
 
 	return nil
+}
+
+func isUnused(item s3.Item, videos []sqlc.GetVideosRow, courseMaterials []sqlc.GetCourseMaterialsRow) bool {
+	if isVideoItem(item.Key) && !isInVideoTable(item.Key, videos) {
+		return true
+	}
+
+	if isCourseMaterialItem(item.Key) && !isInCourseMaterialsTable(item.Key, courseMaterials) {
+		return true
+	}
+
+	return false
 }
 
 func isVideoItem(key string) bool {
