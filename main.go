@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/robfig/cron/v3"
+
 	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/filecleaner"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/s3"
@@ -45,7 +46,7 @@ func run() error {
 		return fmt.Errorf("unable to connect to s3: %v", err)
 	}
 
-	cleaner := filecleaner.New(db, s3Client)
+	cleaner := filecleaner.New(db, s3Client, cfg.DryRun)
 
 	c := cron.New()
 
