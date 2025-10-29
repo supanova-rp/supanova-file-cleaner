@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/robfig/cron/v3"
 	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
@@ -14,18 +16,19 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-
-	err := run(ctx)
+	err := run()
 	if err != nil {
 		fmt.Println("run failed:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("app shutting down")
+	slog.Info("shutting down gracefully...")
 }
 
-func run(ctx context.Context) error {
+func run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	cfg, err := config.ParseEnv()
 	if err != nil {
 		return fmt.Errorf("unable to parse env: %v", err)
@@ -47,7 +50,10 @@ func run(ctx context.Context) error {
 	c := cron.New()
 
 	_, err = c.AddFunc(cfg.CronSchedule, func() {
-		err = cleaner.Run(ctx)
+		// Use a separate context for the job so it isn't cancelled during shutdown and
+		// will allow c.Stop() to wait for it to finish
+		jobCtx := context.Background()
+		err = cleaner.Run(jobCtx)
 		if err != nil {
 			slog.Error("file cleaner run failed", slog.Any("err", err))
 		}
@@ -56,9 +62,14 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to add cron func: %v", err)
 	}
 
-	// Start the scheduler (non-blocking)
 	c.Start()
+	slog.Info("cron scheduler started", slog.String("schedule", cfg.CronSchedule))
 
-	// TODO: Best way to make the app block?
-	select {}
+	<-ctx.Done() // Blocks until signal received (e.g. by ctrl-C or process killed)
+
+	cronCtx := c.Stop() // Returns a context that waits for any running jobs to finish, then sends to the ctx Done channel
+	<-cronCtx.Done()
+
+	slog.Info("cron scheduler stopped")
+	return nil
 }
