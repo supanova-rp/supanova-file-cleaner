@@ -16,10 +16,7 @@ import (
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	err := run(ctx)
+	err := run()
 	if err != nil {
 		fmt.Println("run failed:", err)
 		os.Exit(1)
@@ -28,7 +25,10 @@ func main() {
 	slog.Info("shutting down gracefully...")
 }
 
-func run(ctx context.Context) error {
+func run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	cfg, err := config.ParseEnv()
 	if err != nil {
 		return fmt.Errorf("unable to parse env: %v", err)
