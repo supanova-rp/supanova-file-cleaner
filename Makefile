@@ -22,28 +22,22 @@ lint/fix:
 sqlc:
 	go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0 generate -f internal/store/sqlc.yaml
 
-build/mac:
+build:
 	CGO_ENABLED=0 \
-	GOOS=darwin \
-	GOARCH=arm64 \
-	go build -o $(IMAGE_NAME) .
-
-build/linux:
-	CGO_ENABLED=0 \
-	GOOS=linux \
-	GOARCH=amd64 \
 	go build -o $(IMAGE_NAME) .
 
 docker/local-build:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_USER)/$(IMAGE_NAME):local .
-
-docker/ci-build:
-	DOCKER_BUILDKIT=1 docker build \
-	-t $(DOCKER_USER)/$(IMAGE_NAME):latest \
-	-t $(DOCKER_USER)/$(IMAGE_NAME):$(GIT_HASH) .
+	DOCKER_BUILDKIT=1 docker buildx build \
+	-t $(DOCKER_USER)/$(IMAGE_NAME):local .
 
 docker/local-run:
 	docker run --env-file .env.docker $(DOCKER_USER)/$(IMAGE_NAME):local
+
+docker/ci-build:
+	DOCKER_BUILDKIT=1 docker buildx build \
+	--platform linux/amd64 \
+	-t $(DOCKER_USER)/$(IMAGE_NAME):latest \
+	-t $(DOCKER_USER)/$(IMAGE_NAME):$(GIT_HASH) .
 
 docker/push:
 	docker push --all-tags $(DOCKER_USER)/$(IMAGE_NAME)

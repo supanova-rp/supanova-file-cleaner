@@ -1,0 +1,6 @@
+services:
+  supanova-cleaner:
+    image: jdgarner/supanova-file-cleaner:latest
+    env_file: .env
+    network_mode: "host"
+    restart: unless-stopped
