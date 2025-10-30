@@ -61,12 +61,12 @@ func (f *FileCleaner) Run(ctx context.Context) error {
 		}
 	}
 
-	slog.Info("Number of items in s3", slog.Int("count", len(items)))
-	slog.Info("Total size of items in s3", slog.Int64("size_mb", totalUsedSize/bytesInMB))
+	slog.Info("number of items in s3", slog.Int("count", len(items)))
+	slog.Info("total size of items in s3", slog.Int64("size_mb", totalUsedSize/bytesInMB))
 
 	for _, item := range unusedItems {
 		totalUnusedSize += item.Size
-		slog.Info("Unused item", slog.String("name", item.Key), slog.Int64("size_bytes", item.Size))
+		slog.Info("unused item", slog.String("name", item.Key), slog.Int64("size_bytes", item.Size))
 
 		if !f.dryRun { // don't delete the unused items on a dry run
 			err := f.s3.DeleteItem(ctx, item.Key)
@@ -77,10 +77,13 @@ func (f *FileCleaner) Run(ctx context.Context) error {
 	}
 
 	if len(unusedItems) > 0 {
-		slog.Info("Found unused items", slog.Int("count", len(unusedItems)))
-		slog.Info("Total size of deleted items", slog.Int64("size_mb", totalUnusedSize/bytesInMB))
+		slog.Info("found unused items", slog.Int("count", len(unusedItems)))
+		slog.Info("total size of deleted items", slog.Int64("size_mb", totalUnusedSize/bytesInMB))
+		if f.dryRun {
+			slog.Info("no items deleted (dry run)")
+		}
 	} else {
-		slog.Info("No unused items found")
+		slog.Info("no unused items found")
 	}
 
 	return nil

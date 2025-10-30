@@ -1,7 +1,10 @@
 # =========================
 # Stage 1: Build the binary
 # =========================
-FROM golang:1.25 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25 AS builder
+
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
@@ -10,7 +13,7 @@ RUN make dep
 
 COPY . .
 
-RUN make build/linux
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH make build
 
 # =========================
 # STAGE 2: runtime
