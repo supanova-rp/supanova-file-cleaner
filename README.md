@@ -12,14 +12,13 @@ Run:
 make run
 ```
 
-Generate db queries:
-```
-make sqlc
-```
-
 Run with docker:
 ```
 make docker/local-build
 make docker/local-run
 ```
 
+Generate db queries:
+```
+make sqlc
+```
