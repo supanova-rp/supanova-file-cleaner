@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	s3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
 )
@@ -45,21 +45,24 @@ func New(ctx context.Context, cfg config.AWSConfig) (*Client, error) {
 }
 
 func (c *Client) GetBucketItems(ctx context.Context) ([]Item, error) {
-	// TODO: paginate?
-	resp, err := c.s3.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
+	paginator := s3.NewListObjectsV2Paginator(c.s3, &s3.ListObjectsV2Input{
 		Bucket: aws.String(c.bucketName),
 	})
-	if err != nil {
-		return nil, fmt.Errorf("unable to list items in bucket %v", err)
-	}
 
-	items := make([]Item, 0, len(resp.Contents))
+	items := make([]Item, 0)
 
-	for _, item := range resp.Contents {
-		items = append(items, Item{
-			Key:  aws.ToString(item.Key),
-			Size: aws.ToInt64(item.Size),
-		})
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("unable to list items in bucket: %w", err)
+		}
+
+		for _, item := range page.Contents {
+			items = append(items, Item{
+				Key:  aws.ToString(item.Key),
+				Size: aws.ToInt64(item.Size),
+			})
+		}
 	}
 
 	return items, nil
