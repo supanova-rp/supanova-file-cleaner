@@ -1,6 +1,14 @@
 services:
   supanova-cleaner:
     image: jdgarner/supanova-file-cleaner:latest
+    container_name: supanova-file-cleaner
     env_file: .env
-    network_mode: "host"
+    network_mode: host
     restart: unless-stopped
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        tag: "docker.{{.Name}}"
+        fluentd-async: "true"
+        fluentd-max-retries: "5"
