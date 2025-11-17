@@ -1,7 +1,7 @@
 services:
-  supanova-cleaner:
-    image: jdgarner/supanova-file-cleaner:latest
-    container_name: supanova-file-cleaner
+  supanova-maintenance:
+    image: jdgarner/supanova-maintenance:latest
+    container_name: supanova-maintenance
     env_file: .env
     network_mode: host
     restart: unless-stopped

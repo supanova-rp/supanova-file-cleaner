@@ -10,10 +10,10 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
-	"github.com/supanova-rp/supanova-file-cleaner/internal/filecleaner"
-	"github.com/supanova-rp/supanova-file-cleaner/internal/s3"
-	"github.com/supanova-rp/supanova-file-cleaner/internal/store"
+	"github.com/supanova-rp/supanova-maintenance/internal/config"
+	"github.com/supanova-rp/supanova-maintenance/internal/filecleaner"
+	"github.com/supanova-rp/supanova-maintenance/internal/s3"
+	"github.com/supanova-rp/supanova-maintenance/internal/store"
 )
 
 func main() {

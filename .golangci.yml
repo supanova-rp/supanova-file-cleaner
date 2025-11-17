@@ -55,5 +55,5 @@ formatters:
       sections:
         - standard
         - default
-        - prefix(github.com/supanova-rp/supanova-file-cleaner)
+        - prefix(github.com/supanova-rp/supanova-maintenance)
 

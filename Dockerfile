@@ -25,8 +25,8 @@ RUN addgroup -g 1000 -S appgroup && adduser -u 1000 -S appuser -G appgroup
 RUN mkdir /app && chown appuser:appgroup /app
 WORKDIR /app
 
-COPY --from=builder /app/supanova-file-cleaner /app/supanova-file-cleaner
+COPY --from=builder /app/supanova-maintenance /app/supanova-maintenance
 
 USER appuser
 
-ENTRYPOINT ["/app/supanova-file-cleaner"]
+ENTRYPOINT ["/app/supanova-maintenance"]

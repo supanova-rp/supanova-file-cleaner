@@ -1,6 +1,6 @@
 GIT_HASH := $(shell git rev-parse --short HEAD)
 DOCKER_USER := jdgarner
-IMAGE_NAME := supanova-file-cleaner
+IMAGE_NAME := supanova-maintenance
 
 dep:
 	go mod download
@@ -25,6 +25,9 @@ sqlc:
 build:
 	CGO_ENABLED=0 \
 	go build -o $(IMAGE_NAME) .
+
+docker/run:
+	docker-compose up -d
 
 docker/local-build:
 	DOCKER_BUILDKIT=1 docker buildx build \

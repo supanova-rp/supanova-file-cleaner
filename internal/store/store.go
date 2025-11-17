@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/supanova-rp/supanova-file-cleaner/internal/store/sqlc"
+	"github.com/supanova-rp/supanova-maintenance/internal/store/sqlc"
 )
 
 type Store struct {
