@@ -1,6 +1,6 @@
-# Supanova File Cleaner
+# Supanova Maintenance
 
-Go service that runs periodically to remove unused files from Supanova learning platform S3 bucket
+Go service that runs periodic maintenance tasks for Supanova learning platform (e.g. remove unused files from S3, backup DB to S3)
 
 Setup:
 ```
@@ -14,8 +14,7 @@ make run
 
 Run with docker:
 ```
-make docker/local-build
-make docker/local-run
+make docker/run
 ```
 
 Generate db queries:

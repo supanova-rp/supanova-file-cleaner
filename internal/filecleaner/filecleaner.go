@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/supanova-rp/supanova-file-cleaner/internal/s3"
-	"github.com/supanova-rp/supanova-file-cleaner/internal/store"
-	"github.com/supanova-rp/supanova-file-cleaner/internal/store/sqlc"
+	"github.com/supanova-rp/supanova-maintenance/internal/s3"
+	"github.com/supanova-rp/supanova-maintenance/internal/store"
+	"github.com/supanova-rp/supanova-maintenance/internal/store/sqlc"
 )
 
 const (

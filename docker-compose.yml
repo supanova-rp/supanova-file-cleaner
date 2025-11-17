@@ -1,0 +1,9 @@
+services:
+  supanova-maintenance:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: supanova-maintenance
+    env_file:
+      - .env.docker
+    restart: unless-stopped

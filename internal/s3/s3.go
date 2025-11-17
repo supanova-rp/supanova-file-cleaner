@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
-	"github.com/supanova-rp/supanova-file-cleaner/internal/config"
+	"github.com/supanova-rp/supanova-maintenance/internal/config"
 )
 
 type Client struct {
