@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/supanova-rp/supanova-maintenance/internal/s3"
 )
 
@@ -32,7 +33,8 @@ func (b *Backup) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to parse connection string: %w", err)
 	}
 
-	cmd := exec.Command("pg_dump",
+	// #nosec G204 -- pg_dump arguments are from parsed pgx config, not user input
+	cmd := exec.CommandContext(ctx, "pg_dump",
 		"-h", config.Host,
 		"-p", fmt.Sprintf("%d", config.Port),
 		"-U", config.User,
