@@ -20,6 +20,9 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH make build
 # =========================
 FROM alpine:3.22
 
+# Install PostgreSQL client tools (needed for pg_dump for db backup)
+RUN apk add --no-cache postgresql-client
+
 RUN addgroup -g 1000 -S appgroup && adduser -u 1000 -S appuser -G appgroup
 
 RUN mkdir /app && chown appuser:appgroup /app
