@@ -10,6 +10,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 
+	"github.com/supanova-rp/supanova-maintenance/internal/backup"
 	"github.com/supanova-rp/supanova-maintenance/internal/config"
 	"github.com/supanova-rp/supanova-maintenance/internal/filecleaner"
 	"github.com/supanova-rp/supanova-maintenance/internal/s3"
@@ -41,12 +42,17 @@ func run() error {
 	}
 	defer db.Close()
 
-	s3Client, err := s3.New(ctx, cfg.AWS)
+	s3AssetsClient, err := s3.New(ctx, cfg.AWS.Config, cfg.AWS.AssetsBucketName)
 	if err != nil {
 		return fmt.Errorf("unable to connect to s3: %v", err)
 	}
+	cleaner := filecleaner.New(db, s3AssetsClient, cfg.DryRun)
 
-	cleaner := filecleaner.New(db, s3Client, cfg.DryRun)
+	s3BackupClient, err := s3.New(ctx, cfg.AWS.Config, cfg.AWS.DBBackupBucketName)
+	if err != nil {
+		return fmt.Errorf("unable to connect to s3: %v", err)
+	}
+	dbbackup := backup.New(cfg.DatabaseURL, s3BackupClient)
 
 	c := cron.New()
 
@@ -56,7 +62,12 @@ func run() error {
 		jobCtx := context.Background()
 		err = cleaner.Run(jobCtx)
 		if err != nil {
-			slog.Error("file cleaner run failed", slog.Any("err", err))
+			slog.Error("file cleaner failed", slog.Any("err", err))
+		}
+
+		err = dbbackup.Run(jobCtx)
+		if err != nil {
+			slog.Error("db backup failed", slog.Any("err", err))
 		}
 	})
 	if err != nil {

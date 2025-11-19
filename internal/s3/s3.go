@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
@@ -22,7 +23,7 @@ type Item struct {
 	Size int64
 }
 
-func New(ctx context.Context, cfg config.AWSConfig) (*Client, error) {
+func New(ctx context.Context, cfg config.AWSConfig, bucketName string) (*Client, error) {
 	awsConfig, err := aws_config.LoadDefaultConfig(
 		ctx,
 		aws_config.WithRegion(cfg.Region),
@@ -40,7 +41,7 @@ func New(ctx context.Context, cfg config.AWSConfig) (*Client, error) {
 
 	return &Client{
 		s3:         client,
-		bucketName: cfg.BucketName,
+		bucketName: bucketName,
 	}, nil
 }
 
@@ -66,6 +67,20 @@ func (c *Client) GetBucketItems(ctx context.Context) ([]Item, error) {
 	}
 
 	return items, nil
+}
+
+func (c *Client) PutItem(ctx context.Context, key string, data []byte) error {
+	_, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(c.bucketName),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(data),
+		ContentType: aws.String("application/sql"),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to put item with key: %s, error: %v", key, err)
+	}
+
+	return nil
 }
 
 func (c *Client) DeleteItem(ctx context.Context, key string) error {

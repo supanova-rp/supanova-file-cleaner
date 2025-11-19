@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -13,12 +12,17 @@ type Config struct {
 	DatabaseURL  string
 	CronSchedule string
 	DryRun       bool // if DryRun is true, unused s3 items aren't actually deleted
-	AWS          AWSConfig
+	AWS          AWS
+}
+
+type AWS struct {
+	AssetsBucketName   string
+	DBBackupBucketName string
+	Config             AWSConfig
 }
 
 type AWSConfig struct {
 	Region          string
-	BucketName      string
 	AccessKeyID     string
 	SecretAccessKey string
 }
@@ -28,54 +32,42 @@ func ParseEnv() (*Config, error) {
 	// in at runtime via docker run command
 	_ = godotenv.Load()
 
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
-		return nil, errors.New("DATABASE_URL environment variable is not set")
+	envVars := map[string]string{
+		"DATABASE_URL":                    "",
+		"CRON_SCHEDULE":                   "",
+		"AWS_REGION":                      "",
+		"AWS_SUPANOVA_ASSETS_BUCKET_NAME": "",
+		"AWS_DB_BACKUP_BUCKET_NAME":       "",
+		"AWS_ACCESS_KEY_ID":               "",
+		"AWS_SECRET_ACCESS_KEY":           "",
+		"DRY_RUN":                         "",
 	}
 
-	cronSchedule := os.Getenv("CRON_SCHEDULE")
-	if cronSchedule == "" {
-		return nil, errors.New("CRON_SCHEDULE environment variable is not set")
+	for key := range envVars {
+		value := os.Getenv(key)
+		if value == "" {
+			return nil, fmt.Errorf("%s environment variable is not set", key)
+		}
+		envVars[key] = value
 	}
 
-	region := os.Getenv("AWS_REGION")
-	if region == "" {
-		return nil, errors.New("AWS_REGION environment variable is not set")
-	}
-
-	bucketName := os.Getenv("AWS_BUCKET_NAME")
-	if bucketName == "" {
-		return nil, errors.New("AWS_BUCKET_NAME environment variable is not set")
-	}
-
-	accessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
-	if accessKeyID == "" {
-		return nil, errors.New("AWS_ACCESS_KEY_ID environment variable is not set")
-	}
-
-	secretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	if secretAccessKey == "" {
-		return nil, errors.New("AWS_SECRET_ACCESS_KEY environment variable is not set")
-	}
-
-	dryRunString := os.Getenv("DRY_RUN")
-	if dryRunString == "" {
-		return nil, errors.New("DRY_RUN environment variable is not set")
-	}
-	dryRun, err := strconv.ParseBool(dryRunString)
+	dryRun, err := strconv.ParseBool(envVars["DRY_RUN"])
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse DRY_RUN environment variable: %v", err)
 	}
 
 	return &Config{
-		DatabaseURL:  databaseURL,
-		CronSchedule: cronSchedule,
+		DatabaseURL:  envVars["DATABASE_URL"],
+		CronSchedule: envVars["CRON_SCHEDULE"],
 		DryRun:       dryRun,
-		AWS: AWSConfig{
-			Region:          region,
-			BucketName:      bucketName,
-			AccessKeyID:     accessKeyID,
-			SecretAccessKey: secretAccessKey,
+		AWS: AWS{
+			AssetsBucketName:   envVars["AWS_SUPANOVA_ASSETS_BUCKET_NAME"],
+			DBBackupBucketName: envVars["AWS_DB_BACKUP_BUCKET_NAME"],
+			Config: AWSConfig{
+				Region:          envVars["AWS_REGION"],
+				AccessKeyID:     envVars["AWS_ACCESS_KEY_ID"],
+				SecretAccessKey: envVars["AWS_SECRET_ACCESS_KEY"],
+			},
 		},
 	}, nil
 }
