@@ -2,22 +2,27 @@
 
 Go service that runs periodic maintenance tasks for Supanova learning platform (e.g. remove unused files from S3, backup DB to S3)
 
-Setup:
+#### Setup:
 ```
 make dep
 ```
 
-Run:
+#### Run:
 ```
 make run
 ```
 
-Run with docker:
+#### Run with docker:
 ```
 make docker/run
 ```
 
-Generate db queries:
+#### Generate db queries:
 ```
 make sqlc
+```
+
+#### Deploying on prod:
+```
+make prod-up
 ```
