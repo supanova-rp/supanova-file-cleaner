@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: supanova-maintenance
+    network_mode: host
     env_file:
       - .env.docker
     restart: unless-stopped

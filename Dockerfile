@@ -18,10 +18,11 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH make build
 # =========================
 # STAGE 2: runtime
 # =========================
-FROM alpine:3.22
+# Using edge image because earlier images dont have postgres 18
+FROM alpine:edge
 
 # Install PostgreSQL client tools (needed for pg_dump for db backup)
-RUN apk add --no-cache postgresql-client
+RUN apk add --no-cache postgresql18-client
 
 RUN addgroup -g 1000 -S appgroup && adduser -u 1000 -S appuser -G appgroup
 
