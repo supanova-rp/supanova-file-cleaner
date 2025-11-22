@@ -21,8 +21,3 @@ make docker/run
 ```
 make sqlc
 ```
-
-#### Deploying on prod:
-```
-make prod-up
-```
