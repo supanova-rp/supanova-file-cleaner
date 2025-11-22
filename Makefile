@@ -22,12 +22,6 @@ lint/fix:
 sqlc:
 	go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0 generate -f internal/store/sqlc.yaml
 
-prod-up:
-	cd prod && docker-compose -p supanova-maintenance up -d
-
-prod-down:
-	cd prod && docker-compose -p supanova-maintenance down
-
 build:
 	CGO_ENABLED=0 \
 	go build -o $(IMAGE_NAME) .
